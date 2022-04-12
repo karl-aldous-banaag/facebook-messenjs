@@ -1,12 +1,23 @@
 const Collection = require("../Collection");
 const Profile = require("../Profile");
+const BaseClient = require("./BaseClient");
 
 class ProfileManager {
+    /**
+     * @param {BaseClient} client Facebook Messenger chatbot client
+     * @property {BaseClient} client Facebook Messenger chatbot client
+     * @property {Collection} cache Special object for keeping track of profiles
+     */
     constructor(client) {
         this.client = client;
         this.cache = new Collection();
     }
 
+    /**
+     * @property {Function} fetch Get a profile
+     * @param {String} id ID of profile
+     * @returns {Promise<Profile>|Profile}
+     */
     fetch(id, returnType = "promise") {
         if (returnType == "promise") {
             return new Promise((resolve, reject) => {

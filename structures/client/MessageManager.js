@@ -4,13 +4,20 @@ const BaseClient = require("./BaseClient");
 
 class MessageManager {
     /**
-     * @param {BaseClient} client
+     * @param {BaseClient} client Facebook Messenger chatbot client
+     * @property {BaseClient} client Facebook Messenger chatbot client
+     * @property {Collection} cache Special object for keeping track of messages
      */
     constructor(client) {
         this.client = client;
         this.cache = new Collection();
     }
 
+    /**
+     * @property {Function} fetch Get a message
+     * @param {String|Object} idOrPayload ID of message or JSON object containing data of message
+     * @returns {Promise<Message>}
+     */
     fetch(idOrPayload) {
         return new Promise((resolve, reject) => {
             if (typeof idOrPayload == 'string') {

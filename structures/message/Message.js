@@ -1,10 +1,17 @@
 const BaseClient = require('../client/BaseClient');
-const Profile = require('../Profile');
 
 class Message {
     /**
-     * @param {BaseClient} client
-     * @param {Object} payload
+     * @param {BaseClient} client Facebook Messenger chatbot client
+     * @param {Object} [payload] JSON object with data of message
+     * @property {BaseClient} client Facebook Messenger chatbot client
+     * @property {Object} payload JSON object with data of message
+     * @property {Profile} sender Sender of message
+     * @property {Profile} recipient Recipient of message
+     * @property {Number} timestamp When event happened in number of seconds since January 1, 1970
+     * @property {String} id ID of message
+     * @property {string} text Text of message
+     * @property {Array} quickReplies Quick replies of message
      */
     constructor(client, payload = {
         sender: { id: "" },

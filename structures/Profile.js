@@ -1,7 +1,5 @@
 const fetch = require('make-fetch-happen');
-const FormData = require('form-data');
 const BaseClient = require('./client/BaseClient');
-const Message = require('./message/Message');
 const BaseAttachment = require('./message/attachments/BaseAttachment');
 
 class Profile {
@@ -16,6 +14,9 @@ class Profile {
         this.client.profileManager.cache.set(id, this);
     }
 
+    /**
+     * @param {Array.<String>} [fields] fields of desired personal information
+     */
     getPersonalInfo(fields = ["first_name", "last_name", "profile_pic"]) {
         if ((this.firstName) && (this.lastName) && (this.profilePic)) {
             console.log("All personal info already defined.");
@@ -50,6 +51,12 @@ class Profile {
         }
     }
 
+    /**
+     * 
+     * @param {String} text 
+     * @param {Array|BaseAttachment} [qrsOrAttachment] 
+     * @returns 
+     */
     send(text, qrsOrAttachment = null) {
         return new Promise((resolve, reject) => {    
             let replyMsgJSON = {
@@ -62,7 +69,10 @@ class Profile {
             }
             
             if (qrsOrAttachment instanceof Array) { // Add quick replies (if any)
-                replyMsgJSON.message.quick_replies = [...qrsOrAttachment];
+                replyMsgJSON.message.quick_replies = [];
+                for (let i = 0; i < qrsOrAttachment.length; i++) {
+                    replyMsgJSON.message.quick_replies.append(qrsOrAttachment[i]);
+                }
             } else if (qrsOrAttachment instanceof BaseAttachment) { // Add attachment (if any)
                 replyMsgJSON.message.attachment = qrsOrAttachment.getJSON();
             }

@@ -2,10 +2,16 @@ const fetch = require('make-fetch-happen');
 
 class BaseAttachment {
     /**
-     * @param {BaseClient} client - Facebook Messenger chatbot client
-     * @param {String} type - type of attachment
-     * @param {String} url - URL of attachment
-     * @param {Boolean} reusable
+     * @param {BaseClient} client Facebook Messenger chatbot client
+     * @param {String} type Type of attachment
+     * @param {String} url URL of attachment
+     * @param {Boolean} [reusable]
+     * @param {String} [id] ID of attachment
+     * @property {BaseClient} client Facebook Messenger chatbot client
+     * @property {String} type Type of attachment
+     * @property {String} url URL of attachment
+     * @property {Boolean} reusable
+     * @property {String} id ID of attachment
      */
     constructor(client, type, url, reusable = true, id = null) {
         this.client = client;
@@ -40,6 +46,10 @@ class BaseAttachment {
         }
     }
 
+    /**
+     * @property {Function} getJSON
+     * @returns {Object}
+     */
     getJSON() {
         return {
             type: this.type,

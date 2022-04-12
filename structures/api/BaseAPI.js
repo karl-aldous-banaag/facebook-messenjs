@@ -8,7 +8,8 @@ const resolve = require('path').resolve;
 
 class BaseAPI {
     /**
-     * @param {BaseClient} client - Facebook Messenger chatbot client
+     * @param {BaseClient} client Facebook Messenger chatbot client
+     * @property {BaseClient} client Facebook Messenger chatbot client of BaseAPI
      */
     constructor(client) {
         this.client = client;
@@ -59,7 +60,7 @@ class BaseAPI {
                     } else if ("delivery" in req.body.entry[0].messaging[0]) {
                         let deliveryEvtData = new DeliveryEvent(this.client, req.body.entry[0].messaging[0]);
 
-                        /**c
+                        /**
                          * Receive message event
                          * @event BaseClient#messageRead
                          * @type {ReadEvent}
@@ -76,8 +77,8 @@ class BaseAPI {
     }
 
     /**
-     * @param {Number} port - Port number of API
-     * @param {Function} fn - Function executed after activation of API
+     * @param {Number} port Port number of API
+     * @param {Function} fn Function executed after activation of API
      */
     listen(port, fn) { this.app.listen(port, fn); }
 }

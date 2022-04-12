@@ -1,11 +1,15 @@
 // Inspired by discord.js
 
 class Collection extends Map {
+    /**
+     * @param {Map} [data] Data in Collection
+     */
     constructor(data = null) {
         super(data);
     }
 
     /**
+     * @property {Function} at Get object at that index
      * @param {Number} index - index of wanted value
      */
     at(index) {
@@ -13,8 +17,16 @@ class Collection extends Map {
         return [...this.values()].at(index);
     }
 
+    /**
+     * @property {Function} clone Get a copy of the collection
+     * @returns {Collection}
+     */
     clone() { return new Collection(this); }
 
+    /**
+     * @property {Function} concat Get a collection composed of elements from other collections
+     * @returns {Collection}
+     */
     concat() {
         let newCollection = this.clone();
         let validCollections = [];
@@ -30,7 +42,9 @@ class Collection extends Map {
     }
 
     /**
+     * @property {Function} difference Gets collection with elements found in one collection or other but not both
      * @param {Collection} other
+     * @returns {Collection}
      */
     difference(other) {
         if (!(other instanceof Collection)) {
@@ -47,7 +61,9 @@ class Collection extends Map {
     }
 
     /**
-     * @param {Function} fn
+     * @property {Function} each Does something to all elements and returns the collection object itself
+     * @param {Function} fn Function to execute on all elements
+     * @returns {Collection}
      */
     each(fn) {
         this.forEach(fn);
