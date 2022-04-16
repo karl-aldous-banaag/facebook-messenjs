@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 
 const BaseAPI = require('../api/BaseAPI');
+// const BaseAPI = require('../api/BaseAPI-old');
 const Profile = require('../Profile');
 const MessageManager = require('./MessageManager');
 const ProfileManager = require('./ProfileManager');
@@ -31,6 +32,7 @@ class Client extends EventEmitter {
                 throw new TypeError("credObject.appID is not a string.");
             }
         }
+        if ("appSecret" in credObject) { this.appSecret = credObject.appSecret; }
     }
 
     /**

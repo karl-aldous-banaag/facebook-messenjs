@@ -1,87 +1,113 @@
-const express = require('express');
+const http = require("http");
+const url = require('url');
+
+const crypto = require('crypto');
 
 const Message = require('../message/Message');
 const Client = require('../client/Client');
-const ReadEvent = require('../events/ReadEvent');
-const DeliveryEvent = require('../events/DeliveryEvent');
-const resolve = require('path').resolve;
+const events = require('../events/events');
+const readJSONBody = require("./readJSONBody");
+
+const sendUnauthorized = (res) => {
+    res.writeHead(403, { "Content-Type": "text/html" });
+    res.end("Unauthorized.");
+}
 
 class BaseAPI {
     /**
      * @param {Client} client Facebook Messenger chatbot client
      * @property {Client} client Facebook Messenger chatbot client of BaseAPI
      */
-    constructor(client) {
+    constructor(client, route = "/") {
         this.client = client;
-        this.app = express();
-        this.app.use(express.json());
-
-        this.app.get('/', (req, res) => {
-            if (req.query["hub.challenge"] && req.query["hub.verify_token"]) {
-                if (req.query["hub.verify_token"] == client.verifyToken) {
-                    res.send(req.query["hub.challenge"]);
-                    this.client.emit("webhookVerify", { success: true, date: new Date() });
-                } else {
-                    res.status(403).send("Unauthorized");
-                    this.client.emit("webhookVerify", { success: false, date: new Date() });
-                }
-            } else {
-                res.status(400).send("Missing hub.challenge or hub.verify_token.");
-                this.client.emit("webhookVerify", { success: false, date: new Date() });
-            }
-        });
-
-        if (this.client.webhook) {
-            this.app.get('/file', (req, res) => {
-                res.sendFile(resolve(req.query.path));
-            });
-        }
-
-        this.app.post('/', (req, res) => {
-            if (req.body) {
-                console.log(req.body);
-                console.log(req.body.entry[0]);
-                if ("messaging" in req.body.entry[0]) {
-                    if ("message" in req.body.entry[0].messaging[0]) {
-                        let msgEvtData = new Message(this.client, req.body.entry[0].messaging[0]);
-                        /**
-                         * Receive message event
-                         * @event Client#messaging
-                         * @type {Message}
-                         */
-                        this.client.emit("messages", msgEvtData);
-                    } else if ("read" in req.body.entry[0].messaging[0]) {
-                        let readEvtData = new ReadEvent(this.client, req.body.entry[0].messaging[0].read[0]);
-
-                        /**
-                         * Receive message event
-                         * @event Client#messageRead
-                         * @type {ReadEvent}
-                         */
-                        this.client.emit("messageRead", readEvtData);
-                    } else if ("delivery" in req.body.entry[0].messaging[0]) {
-                        let deliveryEvtData = new DeliveryEvent(this.client, req.body.entry[0].messaging[0]);
-
-                        /**
-                         * Receive message event
-                         * @event Client#messageRead
-                         * @type {ReadEvent}
-                         */
-                        this.client.emit("messageDelivery", deliveryEvtData);
-                    } else if ("reaction" in req.body.entry[0].messaging[0]) {
-
-                        /**
-                         * Receive message event
-                         * @event Client#messageRead
-                         */
-                        this.client.emit("messageReaction")
+        this.app = http.createServer(async (req, res) => {
+            const reqURL = url.parse(req.url, true);
+            if (reqURL.pathname === route) {
+                if (req.method === "GET") {
+                    if (("hub.challenge" in reqURL.query) && ("hub.verify_token" in reqURL.query)) {
+                        if (reqURL.query["hub.verify_token"] == client.verifyToken) {
+                            res.writeHead(200, { "Content-Type": "text/html" });
+                            res.end(reqURL.query["hub.challenge"]);
+                        } else {
+                            sendUnauthorized(res);
+                        }
+                        
+                        this.client.emit("webhookVerify", {
+                            success: reqURL.query["hub.verify_token"] == client.verifyToken,
+                            date: new Date()
+                        });
+                    } else {
+                        sendUnauthorized(res);
                     }
-                } else {
-                    // console.log(req.body.entry[0]);
+
+                    return;
+                } else if (req.method === "POST") {
+                    if (!("x-hub-signature" in req.headers)) {
+                        sendUnauthorized(res);
+                        return;
+                    }
+
+                    if (req.readable) {
+                        const rawJSONString = await readJSONBody(req);
+                        const jsonData = JSON.parse(rawJSONString);
+
+                        let hubSignature = req.headers["x-hub-signature"];
+                        let expectedSignature = `sha1=${
+                            crypto.createHmac('sha1', this.client.appSecret)
+                                .update(rawJSONString)
+                                .digest("hex")
+                        }`;
+
+                        if (hubSignature != expectedSignature) {
+                            sendUnauthorized(res);
+                            return;
+                        }
+
+                        if ("messaging" in jsonData.entry[0]) {
+                            let payload = jsonData.entry[0].messaging[0];
+                            if ("message" in payload) {
+                                let msgEvtData = new Message(this.client, payload);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messaging
+                                 * @type {Message}
+                                 */
+                                this.client.emit("messages", msgEvtData);
+                            } else if ("read" in payload) {
+                                let readEvtData = new events.ReadEvent(this.client, payload.read[0]);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messageRead
+                                 * @type {ReadEvent}
+                                 */
+                                this.client.emit("messageRead", readEvtData);
+                            } else if ("delivery" in payload) {
+                                let deliveryEvtData = new events.DeliveryEvent(this.client, payload);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messageRead
+                                 * @type {ReadEvent}
+                                 */
+                                this.client.emit("messageDelivery", deliveryEvtData);
+                            } else if ("reaction" in payload) {
+                                let reactionEvtData = new events.ReactionEvent(this.client, payload);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messageRead
+                                 */
+                                this.client.emit("messageReaction", reactionEvtData);
+                            }
+                        }
+                    }
+
+                    res.writeHead(200, { "Content-Type": "text/html" });
+                    res.end("awts gege");
                 }
             }
-
-            res.status(200).send("Noted.");
         });
     }
 
