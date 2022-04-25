@@ -27,6 +27,7 @@ class Message {
         this.sender = client.profileManager.fetch(payload.sender.id, "profile");
         this.recipient = client.profileManager.fetch(payload.recipient.id, "profile");
         this.timestamp = payload.timestamp;
+        this.isEcho = "is_echo" in payload.message
         this.id = payload.message.mid;
         this.text = payload.message.text;
         this.quickReplies = [];

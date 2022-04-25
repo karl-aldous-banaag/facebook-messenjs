@@ -51,6 +51,8 @@ class BaseAPI {
                         const rawJSONString = await readJSONBody(req);
                         const jsonData = JSON.parse(rawJSONString);
 
+                        console.log(jsonData.entry[0].messaging[0]);
+
                         let hubSignature = req.headers["x-hub-signature"];
                         let expectedSignature = `sha1=${
                             crypto.createHmac('sha1', this.client.appSecret)
@@ -74,15 +76,41 @@ class BaseAPI {
                                  * @type {Message}
                                  */
                                 this.client.emit("messages", msgEvtData);
-                            } else if ("read" in payload) {
-                                let readEvtData = new events.ReadEvent(this.client, payload.read[0]);
+                            } else if ("optin" in payload) {
+                                let msgEvtData = JSON.parse(JSON.stringify(payload.optin));
+                                msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
+                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                msgEvtData.timestamp = payload.timestamp;
 
                                 /**
-                                 * Receive message event
-                                 * @event Client#messageRead
-                                 * @type {ReadEvent}
+                                 * Receive optin event
+                                 * @event Client#messagingOptin
+                                 * @type {Message}
                                  */
-                                this.client.emit("messageRead", readEvtData);
+                                this.client.emit("messagingOptin", msgEvtData);
+                            } else if ("account_linking" in payload) {
+                                let msgEvtData = JSON.parse(JSON.stringify(payload.account_linking));
+                                msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
+                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                msgEvtData.timestamp = payload.timestamp;
+
+                                /**
+                                 * Receive message account linking event
+                                 * @event Client#messagingOptin
+                                 * @type {Message}
+                                 */
+                                this.client.emit("accountLinking", msgEvtData);
+                            } else if ("policy_enforcement" in payload) {
+                                let msgEvtData = JSON.parse(JSON.stringify(payload.policy_enforcement));
+                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                msgEvtData.timestamp = payload.timestamp;
+
+                                /**
+                                 * Receive policy enforcement event
+                                 * @event Client#messagingOptin
+                                 * @type {Message}
+                                 */
+                                this.client.emit("policyEnforcement", msgEvtData);
                             } else if ("delivery" in payload) {
                                 let deliveryEvtData = new events.DeliveryEvent(this.client, payload);
 
@@ -92,6 +120,18 @@ class BaseAPI {
                                  * @type {ReadEvent}
                                  */
                                 this.client.emit("messageDelivery", deliveryEvtData);
+                            } else if ("referral" in payload) {
+                                let msgEvtData = JSON.parse(JSON.stringify(payload.referral));
+                                msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
+                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                msgEvtData.timestamp = payload.timestamp;
+
+                                /**
+                                 * Receive policy enforcement event
+                                 * @event Client#messagingOptin
+                                 * @type {Message}
+                                 */
+                                this.client.emit("policyEnforcement", msgEvtData);
                             } else if ("reaction" in payload) {
                                 let reactionEvtData = new events.ReactionEvent(this.client, payload);
 
@@ -100,6 +140,15 @@ class BaseAPI {
                                  * @event Client#messageRead
                                  */
                                 this.client.emit("messageReaction", reactionEvtData);
+                            } else if ("read" in payload) {
+                                let readEvtData = new events.ReadEvent(this.client, payload.read[0]);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messageRead
+                                 * @type {ReadEvent}
+                                 */
+                                this.client.emit("messageRead", readEvtData);
                             }
                         }
                     }
