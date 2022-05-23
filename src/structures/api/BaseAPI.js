@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 const Message = require('../message/Message');
 const Client = require('../client/Client');
-const events = require('../events/events');
+const events = require('../events/Events');
 const readJSONBody = require("./readJSONBody");
 
 const sendUnauthorized = (res) => {
