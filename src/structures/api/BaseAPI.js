@@ -32,10 +32,11 @@ class BaseAPI {
                             sendUnauthorized(res);
                         }
                         
-                        this.client.emit("webhookVerify", {
+                        let verifyData = {
                             success: reqURL.query["hub.verify_token"] == client.verifyToken,
                             date: new Date()
-                        });
+                        };
+                        this.client.emit("webhookVerify", verifyData);
                     } else {
                         sendUnauthorized(res);
                     }
@@ -72,22 +73,22 @@ class BaseAPI {
 
                                 /**
                                  * Receive message event
-                                 * @event Client#messaging
+                                 * @event Client#messages
                                  * @type {Message}
                                  */
                                 this.client.emit("messages", msgEvtData);
                             } else if ("optin" in payload) {
-                                let msgEvtData = JSON.parse(JSON.stringify(payload.optin));
-                                msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
-                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
-                                msgEvtData.timestamp = payload.timestamp;
+                                let optinEvtData = JSON.parse(JSON.stringify(payload.optin));
+                                optinEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
+                                optinEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                optinEvtData.timestamp = payload.timestamp;
 
                                 /**
                                  * Receive optin event
                                  * @event Client#messagingOptin
                                  * @type {Message}
                                  */
-                                this.client.emit("messagingOptin", msgEvtData);
+                                this.client.emit("messagingOptin", optinEvtData);
                             } else if ("account_linking" in payload) {
                                 let msgEvtData = JSON.parse(JSON.stringify(payload.account_linking));
                                 msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
@@ -96,48 +97,48 @@ class BaseAPI {
 
                                 /**
                                  * Receive message account linking event
-                                 * @event Client#messagingOptin
+                                 * @event Client#accountLinking
                                  * @type {Message}
                                  */
                                 this.client.emit("accountLinking", msgEvtData);
                             } else if ("policy_enforcement" in payload) {
-                                let msgEvtData = JSON.parse(JSON.stringify(payload.policy_enforcement));
-                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
-                                msgEvtData.timestamp = payload.timestamp;
+                                let policyEnforcementData = JSON.parse(JSON.stringify(payload.policy_enforcement));
+                                policyEnforcementData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                policyEnforcementData.timestamp = payload.timestamp;
 
                                 /**
                                  * Receive policy enforcement event
-                                 * @event Client#messagingOptin
+                                 * @event Client#policyEnforcement
                                  * @type {Message}
                                  */
-                                this.client.emit("policyEnforcement", msgEvtData);
+                                this.client.emit("policyEnforcement", policyEnforcementData);
                             } else if ("delivery" in payload) {
                                 let deliveryEvtData = new events.DeliveryEvent(this.client, payload);
 
                                 /**
                                  * Receive message event
-                                 * @event Client#messageRead
+                                 * @event Client#messageDelivery
                                  * @type {ReadEvent}
                                  */
                                 this.client.emit("messageDelivery", deliveryEvtData);
                             } else if ("referral" in payload) {
-                                let msgEvtData = JSON.parse(JSON.stringify(payload.referral));
-                                msgEvtData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
-                                msgEvtData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
-                                msgEvtData.timestamp = payload.timestamp;
+                                let referralData = JSON.parse(JSON.stringify(payload.referral));
+                                referralData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
+                                referralData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");
+                                referralData.timestamp = payload.timestamp;
 
                                 /**
-                                 * Receive policy enforcement event
-                                 * @event Client#messagingOptin
+                                 * Receive referral event
+                                 * @event Client#referral
                                  * @type {Message}
                                  */
-                                this.client.emit("policyEnforcement", msgEvtData);
+                                this.client.emit("referral", referralData);
                             } else if ("reaction" in payload) {
                                 let reactionEvtData = new events.ReactionEvent(this.client, payload);
 
                                 /**
                                  * Receive message event
-                                 * @event Client#messageRead
+                                 * @event Client#messageReaction
                                  */
                                 this.client.emit("messageReaction", reactionEvtData);
                             } else if ("read" in payload) {
