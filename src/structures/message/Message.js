@@ -13,7 +13,7 @@ class Message {
      * @property {string} text Text of message
      * @property {Array} quickReplies Quick replies of message
      */
-    constructor(client, payload = {
+    constructor(client, raw = {
         sender: { id: "" },
         recipient: { id: "" },
         timestamp: new Date().getTime(),
@@ -23,7 +23,7 @@ class Message {
         }
     }) {
         this.client = client;
-        this.payload = payload;
+        this.raw = raw;
         this.sender = client.profileManager.fetch(payload.sender.id, "profile");
         this.recipient = client.profileManager.fetch(payload.recipient.id, "profile");
         this.timestamp = payload.timestamp;
@@ -32,9 +32,7 @@ class Message {
         this.text = payload.message.text;
         this.quickReplies = [];
 
-        if ("quick_reply" in payload.message) {
-            this.quickReplyPayload = payload.message.quick_reply.payload;
-        }
+        if ("quick_reply" in payload.message) { this.payload = payload.message.quick_reply.payload; }
 
         this.client.messageManager.cache.set(this.id, this);
     }

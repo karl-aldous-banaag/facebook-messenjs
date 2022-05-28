@@ -4,7 +4,7 @@ const BaseEvent = require('./BaseEvent');
 class ReadEvent extends BaseEvent{
     /**
      * @param {Client} client Facebook Messenger chatbot client
-     * @param {Object} payload Object with data about event
+     * @param {Object} raw Object with data about event
      * @property {Client} client Messenger chatbot client
      * @property {Profile} sender Sender of message
      * @property {Profile} recipient Recipient of message
@@ -12,18 +12,17 @@ class ReadEvent extends BaseEvent{
      * @property {Object} read
      * @property {Number} watermark
      */
-    constructor(client, payload = {
+    constructor(client, raw = {
         sender: { id: "" },
         recipient: { id: "" },
         timestamp: 0,
         read: { watermark: 0 }
     }) {
-        super(client, payload, payload.timestamp);
+        super(client, raw, raw.timestamp);
 
-        this.sender = new Profile(client, payload.sender.id);
-        this.recipient = new Profile(client, payload.recipient.id);
-        this.timestamp = payload.timestamp;
-        this.read = payload.read;
+        this.sender = new Profile(client, raw.sender.id);
+        this.recipient = new Profile(client, raw.recipient.id);
+        this.read = raw.read;
     }
 }
 

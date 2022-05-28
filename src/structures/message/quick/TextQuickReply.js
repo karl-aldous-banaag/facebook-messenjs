@@ -25,7 +25,7 @@ class TextQuickReply extends BaseQuickReply{
         return {
             content_type: this.contentType,
             title: this.title,
-            payload: this.payload,
+            raw: this.raw,
             image_url: this.imageURL
         }
     }

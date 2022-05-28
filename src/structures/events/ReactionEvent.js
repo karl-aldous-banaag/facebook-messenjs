@@ -4,7 +4,7 @@ const BaseEvent = require('./BaseEvent');
 class ReactionEvent extends BaseEvent {
     /**
      * @param {Client} client Facebook Messenger chatbot client
-     * @param {Object} payload Object with data about event
+     * @param {Object} raw Object with data about event
      * @property {Client} client Messenger chatbot client
      * @property {Profile} sender Person who reacted
      * @property {Profile} recipient Recipient of reaction
@@ -14,7 +14,7 @@ class ReactionEvent extends BaseEvent {
      * @property {String} emoji Emoji of reaction
      * @property {String} reaction Emoji of reaction in the form of a name
      */
-    constructor(client, payload = {
+    constructor(client, raw = {
         sender: { id: "" },
         recipient: { id: "" },
         timestamp: "",
@@ -25,15 +25,15 @@ class ReactionEvent extends BaseEvent {
             reaction: ""
         }
     }) {
-        super(client, payload, payload.timestamp);
+        super(client, raw, raw.timestamp);
 
-        this.sender = new Profile(client, payload.sender.id);
-        this.recipient = new Profile(client, payload.recipient.id);
-        this.timestamp = payload.timestamp;
-        this.message = client.messageManager.cache.get(payload.reaction.mid);
-        this.action = payload.reaction.action;
-        this.emoji = payload.reaction.emoji;
-        this.reaction = payload.reaction.reaction;
+        this.sender = new Profile(client, raw.sender.id);
+        this.recipient = new Profile(client, raw.recipient.id);
+        this.timestamp = raw.timestamp;
+        this.message = client.messageManager.cache.get(raw.reaction.mid);
+        this.action = raw.reaction.action;
+        this.emoji = raw.reaction.emoji;
+        this.reaction = raw.reaction.reaction;
     }
 }
 

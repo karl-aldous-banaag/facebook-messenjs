@@ -52,8 +52,6 @@ class BaseAPI {
                         const rawJSONString = await readJSONBody(req);
                         const jsonData = JSON.parse(rawJSONString);
 
-                        console.log(jsonData.entry[0].messaging[0]);
-
                         let hubSignature = req.headers["x-hub-signature"];
                         let expectedSignature = `sha1=${
                             crypto.createHmac('sha1', this.client.appSecret)
@@ -121,7 +119,16 @@ class BaseAPI {
                                  * @type {ReadEvent}
                                  */
                                 this.client.emit("messageDelivery", deliveryEvtData);
-                            } else if ("referral" in payload) {
+                            } else if ("postback" in payload) {
+                                let postbackEvtData = new events.PostbackEvent(this.client, payload);
+
+                                /**
+                                 * Receive message event
+                                 * @event Client#messagingPostback
+                                 * @type {ReadEvent}
+                                 */
+                                 this.client.emit("messagingPostback", postbackEvtData);
+                            }else if ("referral" in payload) {
                                 let referralData = JSON.parse(JSON.stringify(payload.referral));
                                 referralData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
                                 referralData.recipient = this.client.profileManager.fetch(payload.recipient.id, "profile");

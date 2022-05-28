@@ -1,10 +1,11 @@
 const Client = require("../client/Client");
 const BaseEvent = require("./BaseEvent");
+const Message = require("../message/Message");
 
-class DeliveryEvent extends BaseEvent{
+class PostbackEvent extends BaseEvent {
     /**
      * @param {Client} client Facebook Messenger chatbot client
-     * @param {Object} raw Object with data about event
+     * @param {Object} [raw] Object with data about event
      * @property {Client} client Messenger chatbot client
      * @property {Profile} sender Sender of message
      * @property {Profile} recipient Recipient of message
@@ -16,15 +17,27 @@ class DeliveryEvent extends BaseEvent{
         sender: { id: "" },
         recipient: { id: "" },
         timestamp: 0,
-        delivery: { mids: [], watermark: 0 }
+        postback: {
+            title: '',
+            payload: '',
+            mid: ''
+        }
     }) {
         super(client, raw, raw.timestamp);
 
         this.sender = client.profileManager.fetch(raw.sender.id, "profile");
         this.recipient = client.profileManager.fetch(raw.recipient.id, "profile");
-        this.message = client.messageManager.cache.get(raw.delivery.mids[0]);
-        this.watermark = raw.delivery.watermark;
+        this.message = new Message(client, {
+            sender: { id: raw.sender.id },
+            recipient: { id: raw.recipient.id },
+            timestamp: new Date().getTime(),
+            message: {
+                mid: raw.postback.mid,
+                text: raw.postback.title
+            }
+        });
+        this.payload = raw.postback.payload;
     }
 }
 
-module.exports = DeliveryEvent;
+module.exports = PostbackEvent;

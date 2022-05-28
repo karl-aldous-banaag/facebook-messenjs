@@ -32,6 +32,7 @@ new Client(credObject);
             <br><a href="#messageReaction">messageReaction</a>
             <br><a href="#messageRead">messageRead</a>
             <br><a href="#messagingOptin">messagingOptin</a>
+            <br><a href="#messagingPostbacks">messagingPostbacks</a>
             <br><a href="#policyEnforcement">policyEnforcement</a>
             <br><a href="#referral">referral</a>
             <br><a href="#webhookVerify">webhookVerify</a>
@@ -283,6 +284,31 @@ new Client(credObject);
                         <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
                     </td>
                     <td style="vertical-align: text-top;">Object with data of API call regarding the event</td>
+                </tr>
+            </table>
+        </li>
+    </ol>
+</div>
+
+<div id="messagingPostbacks">
+    <h3>messagingPostbacks</h3>
+    <ol>
+        <li style="list-style-type: none; margin-bottom: 0.5em;">
+            Emitted when a users clicks a <a href="https://developers.facebook.com/docs/messenger-platform/send-messages/buttons">postback button</a>, <a href="https://developers.facebook.com/docs/messenger-platform/reference/messenger-profile-api/get-started-button">Get Started button</a>, or <a href="https://developers.facebook.com/docs/messenger-platform/reference/messenger-profile-api/persistent-menu">persistent menu item</a>
+        </li>
+        <li style="list-style-type: none; margin-bottom: 0.5em;">
+            <table width="100%">
+                <tr>
+                    <td><b>PARAMETER</b></td>
+                    <td><b>TYPE</b></td>
+                    <td><b>DESCRIPTION</b></td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: text-top;">postbackEvtData</td>
+                    <td style="vertical-align: text-top;">
+                        <a href="./Events/PostbackEvent.html">PostbackEvent</a>
+                    </td>
+                    <td style="vertical-align: text-top;">Object of special class for processing postback events</td>
                 </tr>
             </table>
         </li>

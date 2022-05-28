@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 
 const BaseAPI = require('../api/BaseAPI');
 // const BaseAPI = require('../api/BaseAPI-old');
+const fetch = require('make-fetch-happen');
 const Profile = require('../Profile');
 const MessageManager = require('./MessageManager');
 const ProfileManager = require('./ProfileManager');
@@ -47,6 +48,31 @@ class Client extends EventEmitter {
         this.api.listen(port, fn);
 
         this.profileManager.cache.set(this.appID, new Profile(this, this.appID));
+    }
+
+    /**
+     * @property {Function} setGetStartedPayload
+     * @param {String} payload - Payload of setGetStartedPayload method
+     * @returns {(Promise|null)}
+     */
+    setGetStartedPayload(payload = "<postback_payload>") {
+        if (!this.pageToken) { throw "Page token needed to set Get Started payload"; }
+        return new Promise((resolve, reject) => {
+            fetch(`https://graph.facebook.com/v14.0/me/messenger_profile?access_token=${this.pageToken}`, {
+                method: 'post',
+                body: JSON.stringify({get_started:{payload:payload}}),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(res => res.json())
+                .then(json => {
+                    let success = json.result === "success"
+                    if (success) {
+                        resolve(success);
+                    } else {
+                        reject(success);
+                    }
+                });
+        })
     }
 }
 
