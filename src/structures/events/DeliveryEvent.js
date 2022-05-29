@@ -1,7 +1,7 @@
 const Client = require("../client/Client");
 const BaseEvent = require("./BaseEvent");
 
-class DeliveryEvent extends BaseEvent{
+class DeliveryEvent extends BaseEvent {
     /**
      * @param {Client} client Facebook Messenger chatbot client
      * @param {Object} raw Object with data about event

@@ -24,15 +24,15 @@ class Message {
     }) {
         this.client = client;
         this.raw = raw;
-        this.sender = client.profileManager.fetch(payload.sender.id, "profile");
-        this.recipient = client.profileManager.fetch(payload.recipient.id, "profile");
-        this.timestamp = payload.timestamp;
-        this.isEcho = "is_echo" in payload.message
-        this.id = payload.message.mid;
-        this.text = payload.message.text;
+        this.sender = client.profileManager.fetch(raw.sender.id, "profile");
+        this.recipient = client.profileManager.fetch(raw.recipient.id, "profile");
+        this.timestamp = raw.timestamp;
+        this.isEcho = "is_echo" in raw.message
+        this.id = raw.message.mid;
+        this.text = raw.message.text;
         this.quickReplies = [];
 
-        if ("quick_reply" in payload.message) { this.payload = payload.message.quick_reply.payload; }
+        if ("quick_reply" in raw.message) { this.payload = raw.message.quick_reply.payload; }
 
         this.client.messageManager.cache.set(this.id, this);
     }

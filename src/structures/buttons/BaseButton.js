@@ -12,4 +12,4 @@ class BaseButton {
     }
 }
 
-module.exports = BaseButton
+module.exports = BaseButton;

@@ -1,7 +1,8 @@
 const fetch = require('make-fetch-happen');
 const Client = require('./client/Client');
-const BaseAttachment = require('./message/attachments/BaseAttachment');
+const BaseQuickReply = require('./message/quickReplies/BaseQuickReply');
 const Buttons = require('./buttons/Buttons');
+const BaseTemplate = require('./message/template/BaseTemplate');
 
 class Profile {
     /**
@@ -109,31 +110,42 @@ class Profile {
 
     /**
      * @property {Function} send
-     * @param {String} text 
-     * @param {Array|BaseAttachment} [qrsOrAttachment] 
+     * @param {(String|BaseTemplate)} options
+     * @param {Array.<BaseQuickReply>} quickReplies
      * @returns {Promise}
      */
-    send(text, qrsOrAttachment = null) {
+    send(options, quickReplies = []) {
         return new Promise((resolve, reject) => {    
             let replyMsgJSON = {
                 sender: { id: this.client.appID },
                 recipient:{ id: this.id },
                 timestamp: new Date().getTime(),
                 message: {
-                    text: text
+                    text: options
+                }
+            }
+
+            if (typeof options === "string") {
+                replyMsgJSON.message.text = options;
+            } else if (options instanceof BaseTemplate) {
+                replyMsgJSON.message = {
+                    attachment: {
+                        type: "template",
+                        payload: options.payload
+                    }
                 }
             }
             
-            if (qrsOrAttachment instanceof Array) { // Add quick replies (if any)
-                replyMsgJSON.message.quick_replies = [];
-                for (let i = 0; i < qrsOrAttachment.length; i++) {
-                    replyMsgJSON.message.quick_replies.append(qrsOrAttachment[i]);
+            if (quickReplies.length > 0) {
+                if (typeof options.quickReplies !== Array) {
+                    throw "quickReplies property in options not an array";
                 }
-            } else if (qrsOrAttachment instanceof BaseAttachment) { // Add attachment (if any)
-                replyMsgJSON.message.attachment = qrsOrAttachment.getJSON();
+
+                let qrs = quickReplies.filter(qr => qr instanceof BaseQuickReply);
+                replyMsgJSON.message.quick_replies = qrs.map(qr => qr.getJSON());
             }
 
-            fetch(`https://graph.facebook.com/v10.0/me/messages?access_token=${this.client.pageToken}`, {
+            fetch(`https://graph.facebook.com/v14.0/me/messages?access_token=${this.client.pageToken}`, {
                 method: 'post',
                 body: JSON.stringify(replyMsgJSON),
                 headers: { 'Content-Type': 'application/json' }

@@ -1,10 +1,12 @@
 module.exports = {
+    Buttons: require('./structures/buttons/Buttons'),
     Client: require('./structures/client/Client'),
-    MessageManager: require('./structures/client/MessageManager'),
-    ProfileManager: require('./structures/client/ProfileManager'),
+    Collection: require('./structures/Collection'),
     Events: require('./structures/events/Events'),
     Message: require('./structures/message/Message'),
-    QuickReplies: require('./structures/message/quick/QuickReplies'),
-    Collection: require('./structures/Collection'),
-    Profile: require('./structures/Profile')
+    MessageManager: require('./structures/client/MessageManager'),
+    Profile: require('./structures/Profile'),
+    ProfileManager: require('./structures/client/ProfileManager'),
+    QuickReplies: require('./structures/message/quickReplies/QuickReplies'),
+    Templates: require('./structures/message/template/Templates')
 }
