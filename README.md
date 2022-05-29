@@ -1,13 +1,12 @@
 # Facebook MessenJS
 Facebook MessenJS is an API wrapper for Facebook Messenger inspired by [discord.js](https://discord.js.org/) that allows you to interact with [Facebook Messenger's API](https://developers.facebook.com/docs/messenger-platform/). The bot was programmed with an object-oriented approach so that people can program their Facebook Messenger chatbots with ease.
 
-## Example
-### Installation
+## Installation
 ```
 npm i facebook-messenjs
 ```
 
-### Simple Chatbot
+## Simple Chatbot
 ``` js
 const { Client } = require('facebook-messenjs');
 
