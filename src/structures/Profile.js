@@ -137,10 +137,6 @@ class Profile {
             }
             
             if (quickReplies.length > 0) {
-                if (typeof options.quickReplies !== Array) {
-                    throw "quickReplies property in options not an array";
-                }
-
                 let qrs = quickReplies.filter(qr => qr instanceof BaseQuickReply);
                 replyMsgJSON.message.quick_replies = qrs.map(qr => qr.getJSON());
             }
