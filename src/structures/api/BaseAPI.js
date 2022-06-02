@@ -8,11 +8,16 @@ const sendUnauthorized = (res) => res.status(403).send("Unauthorized.");
 
 class BaseAPI {
     /**
-     * @param {Client} client Facebook Messenger chatbot client
-     * @property {Client} route Route for Facebook Messenger webhook
+     * @param {Client} client - Facebook Messenger chatbot client
+     * @param {Client} route - Route for Facebook Messenger webhook
+     * @param {Object} options - Options for BaseAPI
+     * @property {Boolean} validation - If API should only receive calls from Facebook
      */
-    constructor(client, route = "/") {
+    constructor(client, route = "/", options = {
+        validation: true
+    }) {
         this.client = client;
+        this.validation = options.validation;
         
         // Initialization of API
         this.app = express();
@@ -43,16 +48,18 @@ class BaseAPI {
             }
 
             if (req.body) {
-                let hubSignature = req.headers["x-hub-signature"];
-                let expectedSignature = `sha1=${
-                    crypto.createHmac('sha1', this.client.appSecret)
-                        .update(JSON.stringify(req.body))
-                        .digest("hex")
-                }`;
-
-                if (hubSignature !== expectedSignature) {
-                    sendUnauthorized(res);
-                    return;
+                if (this.validation) {
+                    let hubSignature = req.headers["x-hub-signature"];
+                    let expectedSignature = `sha1=${
+                        crypto.createHmac('sha1', this.client.appSecret)
+                            .update(JSON.stringify(req.body))
+                            .digest("hex")
+                    }`;
+    
+                    if (hubSignature !== expectedSignature) {
+                        sendUnauthorized(res);
+                        return;
+                    }
                 }
 
                 if ("messaging" in req.body.entry[0]) {

@@ -9,31 +9,31 @@ const ProfileManager = require('./ProfileManager');
 
 class Client extends EventEmitter {
     /**
-     * @param {Object} credObject JSON object with necessary credentials
+     * @param {Object} options JSON object with necessary options
      * @property {MessageManager} messageManager Property of object for storing messages
      * @property {ProfileManager} profileManager Property of object for storing profiles
      * @property {String} pageToken Page token from Facebook
      * @property {String} verifyToken Token for confirming the API to Facebook
      * @property {String} appID ID of application of chatbot from Facebook
      */
-    constructor(credObject) {
+    constructor(options) {
         super();
 
         this.messageManager = new MessageManager(this);
         this.profileManager = new ProfileManager(this);
 
-        if ("pageToken" in credObject) {
-            this.pageToken = credObject.pageToken;
-        }
-        if ("verifyToken" in credObject) { this.verifyToken = credObject.verifyToken; }
-        if ("appID" in credObject) {
-            if (typeof credObject.appID == 'string') {
-                this.appID = credObject.appID;
+        this.pageToken = options.pageToken;
+        this.verifyToken = options.verifyToken;
+        this.appSecret = options.appSecret;
+        this.validation = options.validation ? options.validation : true;
+        this.route = options.route ? options.route : "/";
+        if ("appID" in options) {
+            if (typeof options.appID == 'string') {
+                this.appID = options.appID;
             } else {
-                throw new TypeError("credObject.appID is not a string.");
+                throw new TypeError("options.appID is not a string.");
             }
         }
-        if ("appSecret" in credObject) { this.appSecret = credObject.appSecret; }
     }
 
     /**
@@ -44,7 +44,9 @@ class Client extends EventEmitter {
      */
     listen(port = 3456, fn = () => {}) {
         this.port = port;
-        this.api = new BaseAPI(this);
+        this.api = new BaseAPI(this, this.route, {
+            validation: this.validation
+        });
         this.api.listen(port, fn);
 
         this.profileManager.cache.set(this.appID, new Profile(this, this.appID));
