@@ -6,6 +6,7 @@ const fetch = require('make-fetch-happen');
 const Profile = require('../Profile');
 const MessageManager = require('./MessageManager');
 const ProfileManager = require('./ProfileManager');
+const makeDefault = require('../utils/makeDefault');
 
 class Client extends EventEmitter {
     /**
@@ -25,8 +26,8 @@ class Client extends EventEmitter {
         this.pageToken = options.pageToken;
         this.verifyToken = options.verifyToken;
         this.appSecret = options.appSecret;
-        this.validation = options.validation ? options.validation : true;
-        this.route = options.route ? options.route : "/";
+        this.validation = makeDefault(options.validation, true);
+        this.route = makeDefault(options.route, "/");
         if ("appID" in options) {
             if (typeof options.appID == 'string') {
                 this.appID = options.appID;
@@ -60,7 +61,7 @@ class Client extends EventEmitter {
     setGetStartedPayload(payload = "<postback_payload>") {
         if (!this.pageToken) { throw "Page token needed to set Get Started payload"; }
         return new Promise((resolve, reject) => {
-            fetch(`https://graph.facebook.com/v14.0/me/messenger_profile?access_token=${this.pageToken}`, {
+            fetch(`https://graph.facebook.com/v17.0/me/messenger_profile?access_token=${this.pageToken}`, {
                 method: 'post',
                 body: JSON.stringify({get_started:{payload:payload}}),
                 headers: { 'Content-Type': 'application/json' }

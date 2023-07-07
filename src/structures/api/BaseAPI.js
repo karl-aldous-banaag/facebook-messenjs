@@ -3,6 +3,7 @@ const Message = require('../message/Message');
 const Client = require('../client/Client');
 const events = require('../events/Events');
 const express = require('express');
+const bodyParser = require('body-parser');
 
 const sendUnauthorized = (res) => res.status(403).send("Unauthorized.");
 
@@ -17,11 +18,11 @@ class BaseAPI {
         validation: true
     }) {
         this.client = client;
-        this.validation = options.validation;
+        this.validation = options.validation ? true : false;
         
         // Initialization of API
         this.app = express();
-        this.app.use(express.json());
+        this.app.use(bodyParser.json()) // for parsing application/json
 
         this.app.get(route, (req, res) => {
             if (("hub.challenge" in req.query) && ("hub.verify_token" in req.query)) {

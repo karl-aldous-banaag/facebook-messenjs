@@ -23,7 +23,7 @@ class Profile {
      * @returns {null}
      */
     deletePersistentMenu() {
-        fetch(`https://graph.facebook.com/v14.0/me/custom_user_settings?psid=${this.id}&params=[%22persistent_menu%22]&access_token=${this.client.pageToken}`, {
+        fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?psid=${this.id}&params=[%22persistent_menu%22]&access_token=${this.client.pageToken}`, {
             method: 'delete'
         });
     }
@@ -47,7 +47,7 @@ class Profile {
         if (!this.client.pageToken) { throw "token missing for client" }
 
         return new Promise((resolve, reject) => {
-            fetch(`https://graph.facebook.com/v14.0/me/custom_user_settings?psid=${this.id}&access_token=${this.client.pageToken}`)
+            fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?psid=${this.id}&access_token=${this.client.pageToken}`)
                 .then(res => res.json())
                 .then(json => {
                     if (!("data" in json)) { reject(json) }
@@ -141,7 +141,7 @@ class Profile {
                 replyMsgJSON.message.quick_replies = qrs.map(qr => qr.getJSON());
             }
 
-            fetch(`https://graph.facebook.com/v14.0/me/messages?access_token=${this.client.pageToken}`, {
+            fetch(`https://graph.facebook.com/v17.0/me/messages?access_token=${this.client.pageToken}`, {
                 method: 'post',
                 body: JSON.stringify(replyMsgJSON),
                 headers: { 'Content-Type': 'application/json' }
@@ -173,7 +173,7 @@ class Profile {
                 ]
             }
     
-            fetch(`https://graph.facebook.com/v14.0/me/custom_user_settings?access_token=${this.client.pageToken}`, {
+            fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?access_token=${this.client.pageToken}`, {
                 method: 'post',
                 body: JSON.stringify(postObject),
                 headers: { 'Content-Type': 'application/json' }

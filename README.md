@@ -33,5 +33,5 @@ bot.on("messages", message => {
 // Turns on the bot at port 5566
 bot.listen(5566, () => {
     console.log(`Facebook Messenger chatbot listening at http://localhost:${bot.port}`);
-})
+});
 ```
