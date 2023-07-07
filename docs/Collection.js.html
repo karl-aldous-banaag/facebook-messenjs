@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Collection.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Collection.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// Inspired by discord.js
+
+class Collection extends Map {
+    /**
+     * @param {Map} [data] Data in Collection
+     */
+    constructor(data = null) {
+        super(data);
+    }
+
+    /**
+     * @property {Function} at Get object at that index
+     * @param {Number} index - index of wanted value
+     */
+    at(index) {
+        index = Math.floor(index);
+        return [...this.values()].at(index);
+    }
+
+    /**
+     * @property {Function} clone Get a copy of the collection
+     * @returns {Collection}
+     */
+    clone() { return new Collection(this); }
+
+    /**
+     * @property {Function} concat Get a collection composed of elements from other collections
+     * @returns {Collection}
+     */
+    concat() {
+        let newCollection = this.clone();
+        let validCollections = [];
+        for (arg in arguments) {
+            if (arg instanceof Collection) { validCollections.push(arg) }
+        }
+        for (validCollection of validCollections) {
+            for ([key, value] of validCollection) {
+                newCollection.set(key, value)
+            }
+        }
+        return newCollection;
+    }
+
+    /**
+     * @property {Function} difference Gets collection with elements found in one collection or other but not both
+     * @param {Collection} other
+     * @returns {Collection}
+     */
+    difference(other) {
+        if (!(other instanceof Collection)) {
+            throw new TypeError("input of difference() is not a collection");
+        }
+        let newCollection = new Collection();
+        for (let [key, value] of other) {
+			if (!this.has(key)) newCollection.set(key, value);
+		}
+		for (let [key, value] of this) {
+			if (!other.has(key)) newCollection.set(key, value);
+		}
+		return newCollection;
+    }
+
+    /**
+     * @property {Function} each Does something to all elements and returns the collection object itself
+     * @param {Function} fn Function to execute on all elements
+     * @returns {Collection}
+     */
+    each(fn) {
+        this.forEach(fn);
+		return this;
+    }
+
+    ensure(key, defaultValGen) {
+        if (this.has(key)) { return this.get(key); }
+        let defaultVal = defaultValGen(key, this);
+		this.set(key, defaultVal);
+		return defaultVal;
+    }
+
+    equals(collection) {
+		if (!collection) return false;
+		if (this === collection) return true;
+		if (this.size !== collection.size) return false;
+		for (let [key, value] of this) {
+			if (!collection.has(key) || value !== collection.get(key)) {
+				return false;
+			}
+		}
+		return true;
+    }
+
+    /**
+     * @param {Function} fn
+     */
+    every(fn) {
+        for (let [key, value] of this) { if (!fn(value, key, this)) { return false; } }
+		return true;
+    }
+
+    /**
+     * @param {Function} fn
+     */
+    filter(fn) {
+		let results = new Collection();
+		for (let [key, value] of this) { if (fn(value, key, this)) { results.set(key, value); } }
+		return results;
+    }
+
+    /**
+     * @param {Function} fn
+     */
+    find(fn) {
+        for (let [key, value] of this) { if (fn(value, key, this)) { return value }; }
+        return null;
+    }
+
+    /**
+     * @param {Function} fn
+     */
+    findKey(fn) {
+        for (let [key, value] of this) { if (fn(value, key, this)) { return key }; }
+        return null;
+    }
+
+    first() { return [...this.values()][0]; }
+
+    firstKey() { return [...this.keys()][0]; }
+
+    /**
+     * @param {Function} fn
+     */
+    flatMap(fn) {
+        let newCollection = new Collection();
+        let keys = [...this.keys()];
+        let values = [...this.values()].flatMap(fn);
+        for (let i = 0; i &lt; newValues.length; i++) { newCollection.set(keys[i], values[i]) }
+        return newCollection
+    }
+
+    getJSON() { return [...this.values()] }
+
+    hasAll(keys) {
+        let availableKeys = [...this.keys()];
+        for (key of keys) { if (!(key in availableKeys)) return false; }
+        return true;
+    }
+
+    hasAny(keys) {
+        let availableKeys = [...this.keys()];
+        for (key of keys) { if ((key in availableKeys)) return true; }
+        return false;
+    }
+
+    intersect(other) {
+        if (!(other instanceof Collection)) {
+            throw new TypeError("input of difference() is not a collection");
+        }
+
+        let newCollection = new Collection();
+
+        for (let [key, value] of other) {
+            if ((this.has(key)) &amp;&amp; (other.has(key))) {
+                newCollection.set(key, value);
+            }
+        }
+
+        return newCollection;
+    }
+
+    /**
+     * @param {Number} index - index of wanted key
+     */
+    keyAt(index) { return this.keyAt(index); }
+
+    last() { return [...this.values()][this.size - 1]; }
+
+    lastKey() { return [...this.keys()][this.size - 1]; }
+
+    // map() {}
+
+    // mapValues() {}
+
+    // merge() {}
+
+    // partition() {}
+
+    // partition() {}
+
+    random() { return [...this.values()][ Math.floor(Math.random() * this.size) ] }
+
+    randomKey() { return [...this.keys()][ Math.floor(Math.random() * this.size) ] }
+
+    // reduce() {}
+
+    reverse() {
+        let newCollection = new Collection();
+        let keys = [...this.keys()].reverse();
+        let values = [...this.values()].reverse();
+
+        for (let i = 0; i &lt; this.size; i++) {
+            newCollection.set(keys[i], values[i])
+        }
+
+        return newCollection;
+    }
+
+    /**
+     * @param {Function} fn
+     */
+    some(fn) {
+        for (let [key, value] of this) { if (fn(value, key, this)) { return true }; }
+        return false;
+    }
+
+    // sort() {}
+
+    // sorted() {}
+
+    // sweep() {}
+
+    // tap() {}
+
+    // combineEntries() {}
+}
+
+module.exports = Collection;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BaseAPI.html">BaseAPI</a></li><li><a href="BaseAttachment.html">BaseAttachment</a></li><li><a href="BaseButton.html">BaseButton</a></li><li><a href="BaseEvent.html">BaseEvent</a></li><li><a href="BaseQuickReply.html">BaseQuickReply</a></li><li><a href="BaseTemplate.html">BaseTemplate</a></li><li><a href="CallButton.html">CallButton</a></li><li><a href="Client.html">Client</a></li><li><a href="Collection.html">Collection</a></li><li><a href="DeliveryEvent.html">DeliveryEvent</a></li><li><a href="GenericTemplate.html">GenericTemplate</a></li><li><a href="Message.html">Message</a></li><li><a href="MessageManager.html">MessageManager</a></li><li><a href="PostbackButton.html">PostbackButton</a></li><li><a href="PostbackEvent.html">PostbackEvent</a></li><li><a href="Profile.html">Profile</a></li><li><a href="ProfileManager.html">ProfileManager</a></li><li><a href="ReactionEvent.html">ReactionEvent</a></li><li><a href="ReadEvent.html">ReadEvent</a></li><li><a href="TextQuickReply.html">TextQuickReply</a></li><li><a href="URLButton.html">URLButton</a></li></ul><h3>Events</h3><ul><li><a href="Client.html#event:accountLinking">accountLinking</a></li><li><a href="Client.html#event:messageDelivery">messageDelivery</a></li><li><a href="Client.html#event:messageReaction">messageReaction</a></li><li><a href="Client.html#event:messageRead">messageRead</a></li><li><a href="Client.html#event:messages">messages</a></li><li><a href="Client.html#event:messagingOptin">messagingOptin</a></li><li><a href="Client.html#event:messagingPostback">messagingPostback</a></li><li><a href="Client.html#event:policyEnforcement">policyEnforcement</a></li><li><a href="Client.html#event:referral">referral</a></li></ul><h3>Global</h3><ul><li><a href="global.html#makeDefault">makeDefault</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Jul 07 2023 08:53:06 GMT+0800 (Philippine Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
