@@ -1,8 +1,9 @@
 const fetch = require('make-fetch-happen');
-const Client = require('./client/Client');
+const Client = require('../client/Client');
 const BaseQuickReply = require('./message/quickReplies/BaseQuickReply');
 const Buttons = require('./buttons/Buttons');
 const BaseTemplate = require('./message/template/BaseTemplate');
+const Message = require('./message/Message');
 
 class Profile {
     /**
@@ -112,7 +113,7 @@ class Profile {
      * @property {Function} send
      * @param {(String|BaseTemplate)} options
      * @param {Array.<BaseQuickReply>} quickReplies
-     * @returns {Promise}
+     * @returns {Promise<Message>}
      */
     send(options, quickReplies = []) {
         return new Promise((resolve, reject) => {    
@@ -150,7 +151,11 @@ class Profile {
                 .then(json => {
                     replyMsgJSON.message.mid = json.message_id;
                     let cachedMessage = this.client.messageManager.fetch(replyMsgJSON);
-                    resolve(cachedMessage);
+                    if (json.error) {
+                        reject(json);
+                    } else {
+                        resolve(cachedMessage);
+                    }
                 });
         })
     }

@@ -10,8 +10,9 @@
     "monospaceLinks": true
   },
   "opts": {
+    "template": "./template",
     "recurse": true,
     "destination": "./docs/",
-    "readme": "./docs/README.md"
+    "readme": "./README.md"
   }
 }

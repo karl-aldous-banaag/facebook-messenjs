@@ -1,0 +1,9 @@
+/docs
+/template
+jsdoc.json
+.npmignore
+.env
+.gitignore
+index.js
+node_modules
+.env

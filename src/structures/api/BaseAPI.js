@@ -1,11 +1,18 @@
 const crypto = require('crypto');
 const Message = require('../message/Message');
-const Client = require('../client/Client');
-const events = require('../events/Events');
+const Client = require('../../client/Client');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const sendUnauthorized = (res) => res.status(403).send("Unauthorized.");
+const Verify = require('../actions/Verify');
+const MessageDelivery = require('../actions/MessageDelivery');
+const Postback = require('../actions/Postback');
+const Reaction = require('../actions/Reaction');
+const ReadEvent = require('../actions/ReadEvent');
+
+const Events = require('../../util/Events');
+
+const sendUnauthorized = require('../miscellaneous/sendUnauthorized');
 
 class BaseAPI {
     /**
@@ -25,21 +32,25 @@ class BaseAPI {
         this.app.use(bodyParser.json()) // for parsing application/json
 
         this.app.get(route, (req, res) => {
+            let success = false;
+
             if (("hub.challenge" in req.query) && ("hub.verify_token" in req.query)) {
-                if (req.query["hub.verify_token"] === client.verifyToken) {
+                success = req.query["hub.verify_token"] === client.verifyToken;
+                if (success) {
                     res.send(req.query["hub.challenge"]);
                 } else {
                     sendUnauthorized(res);
                 }
-
-                let verifyData = {
-                    success: req.query["hub.verify_token"] === client.verifyToken,
-                    date: new Date()
-                };
-                this.client.emit("webhookVerify", verifyData);
             } else {
                 sendUnauthorized(res);
             }
+
+            /**
+             * Receive message event
+             * @event Client#webhookVerify
+             * @type {Verify}
+             */
+            client.emit(Events.WebhookVerify, new Verify(client, success));
         });
 
         this.app.post(route, (req, res) => {
@@ -110,23 +121,23 @@ class BaseAPI {
                          */
                         this.client.emit("policyEnforcement", policyEnforcementData);
                     } else if ("delivery" in payload) {
-                        let deliveryEvent = new events.DeliveryEvent(this.client, payload);
+                        let messageDelivery = new MessageDelivery(this.client, payload);
 
                         /**
                          * Receive message event
                          * @event Client#messageDelivery
                          * @type {ReadEvent}
                          */
-                        this.client.emit("messageDelivery", deliveryEvent);
+                        this.client.emit("messageDelivery", messageDelivery);
                     } else if ("postback" in payload) {
-                        let postbackEvent = new events.PostbackEvent(this.client, payload);
+                        let postback = new Postback(this.client, payload);
 
                         /**
                          * Receive message event
                          * @event Client#messagingPostback
                          * @type {ReadEvent}
                          */
-                         this.client.emit("messagingPostback", postbackEvent);
+                         this.client.emit("messagingPostback", postback);
                     } else if ("referral" in payload) {
                         let referralData = JSON.parse(JSON.stringify(payload.referral));
                         referralData.sender = this.client.profileManager.fetch(payload.sender.id, "profile");
@@ -140,15 +151,15 @@ class BaseAPI {
                          */
                         this.client.emit("referral", referralData);
                     } else if ("reaction" in payload) {
-                        let reactionEvent = new events.ReactionEvent(this.client, payload);
+                        let reaction = new Reaction(this.client, payload);
 
                         /**
                          * Receive message event
                          * @event Client#messageReaction
                          */
-                        this.client.emit("messageReaction", reactionEvent);
+                        this.client.emit("messageReaction", reaction);
                     } else if ("read" in payload) {
-                        let readEvent = new events.ReadEvent(this.client, payload.read[0]);
+                        let readEvent = new ReadEvent(this.client, payload.read[0]);
 
                         /**
                          * Receive message event

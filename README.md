@@ -1,12 +1,13 @@
 # Facebook MessenJS
-Facebook MessenJS is an API wrapper for Facebook Messenger inspired by [discord.js](https://discord.js.org/) that allows you to interact with [Facebook Messenger's API](https://developers.facebook.com/docs/messenger-platform/). The bot was programmed with an object-oriented approach so that people can program their Facebook Messenger chatbots with ease.
+Facebook MessenJS is an API wrapper for Facebook Messenger inspired by [discord.js](https://discord.js.org/). This library  allows you to interact with [Facebook Messenger's API](https://developers.facebook.com/docs/messenger-platform/). The bot was programmed with an object-oriented approach so that people can program their Facebook Messenger chatbots with ease.
 
 ## Installation
 ```
 npm i facebook-messenjs
 ```
 
-## Simple Chatbot
+## Example Usage
+Create a simple quick example bot:
 ``` js
 const { Client } = require('facebook-messenjs');
 
@@ -33,5 +34,30 @@ bot.on("messages", message => {
 // Turns on the bot at port 5566
 bot.listen(5566, () => {
     console.log(`Facebook Messenger chatbot listening at http://localhost:${bot.port}`);
+});
+```
+
+Use quick replies:
+``` js
+bot.on('messages', message => {
+    if (!message.payload) { // Checks if the message has a payload
+        message.sender.send("Hi! What is your favorite color?", [
+            new QuickReplies.Text("Red", "RESPONSE_RED"),
+            new QuickReplies.Text("Yellow", "RESPONSE_YELLOW"),
+            new QuickReplies.Text("Others", "RESPONSE_OTHERS")
+        ]);
+    } else {
+        // Responds appropriately to payloads
+        switch (message.payload) {
+            case "RESPONSE_RED":
+                message.sender.send("Red? Me too!");
+            break;
+            case "RESPONSE_OTHERS":
+                message.sender.send("Yellow? That's a nice color!");
+            break;
+            default:
+                message.sender.send("I like that color too.");
+        }
+    }
 });
 ```
