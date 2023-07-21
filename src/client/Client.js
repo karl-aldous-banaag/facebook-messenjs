@@ -1,12 +1,11 @@
 const EventEmitter = require('events');
 
 const BaseAPI = require('../structures/api/BaseAPI');
-// const BaseAPI = require('../api/BaseAPI-old');
-const fetch = require('make-fetch-happen');
 const Profile = require('../structures/Profile');
 const MessageManager = require('./MessageManager');
 const ProfileManager = require('./ProfileManager');
-const makeDefault = require('../structures/miscellaneous/makeDefault');
+const makeDefault = require('../scripts/makeDefault');
+const { fetchPostJSON } = require('../scripts/fetches');
 
 class Client extends EventEmitter {
     /**
@@ -16,6 +15,8 @@ class Client extends EventEmitter {
      * @property {String} pageToken Page token from Facebook
      * @property {String} verifyToken Token for confirming the API to Facebook
      * @property {String} appID ID of application of chatbot from Facebook
+     * @property {number} port port of API bot
+     * @property {BaseAPI} [baseAPI] API of the bot
      */
     constructor(options) {
         super();
@@ -27,7 +28,7 @@ class Client extends EventEmitter {
         this.verifyToken = options.verifyToken;
         this.appSecret = options.appSecret;
         this.validation = makeDefault(options.validation, true);
-        this.route = makeDefault(options.route, "/");
+        this.path = makeDefault(options.path, "/");
         if ("appID" in options) {
             if (typeof options.appID == 'string') {
                 this.appID = options.appID;
@@ -45,10 +46,10 @@ class Client extends EventEmitter {
      */
     listen(port = 3456, fn = () => {}) {
         this.port = port;
-        this.api = new BaseAPI(this, this.route, {
+        this.baseAPI = new BaseAPI(this, this.path, {
             validation: this.validation
         });
-        this.api.listen(port, fn);
+        this.baseAPI.listen(port, fn);
 
         this.profileManager.cache.set(this.appID, new Profile(this, this.appID));
     }
@@ -56,25 +57,25 @@ class Client extends EventEmitter {
     /**
      * @property {Function} setGetStartedPayload
      * @param {String} payload - Payload of setGetStartedPayload method
-     * @returns {(Promise|null)}
+     * @returns {Promise.<boolean>}
      */
     setGetStartedPayload(payload = "<postback_payload>") {
         if (!this.pageToken) { throw "Page token needed to set Get Started payload"; }
         return new Promise((resolve, reject) => {
-            fetch(`https://graph.facebook.com/v2.6/me/messenger_profile?access_token=${this.pageToken}`, {
-                method: 'post',
-                body: JSON.stringify({get_started:{payload:payload}}),
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(res => res.json())
-                .then(json => {
-                    let success = json.result === "success"
+            fetchPostJSON({
+                host: "graph.facebook.com",
+                path: `/v2.6/me/messenger_profile?access_token=${this.pageToken}`
+            }, {get_started:{payload:payload}})
+                .then(res => {
+                    const json = JSON.parse(res);
+                    let success = json.result === "success";
                     if (success) {
                         resolve(success);
                     } else {
                         reject(success);
                     }
-                });
+                })
+                .catch(error => reject(error));
         })
     }
 }

@@ -13,12 +13,12 @@ class URLButton extends BaseButton {
      */
     constructor(title, url, webviewHeightRatio = "full") {
         super("web_url");
-        this.url = url;
         this.title = title;
+        this.url = url;
         this.webviewHeightRatio = webviewHeightRatio;
 
-        this.json.url = url;
         this.json.title = title;
+        this.json.url = url;
         this.json.webview_height_ratio = webviewHeightRatio;
     }
 }

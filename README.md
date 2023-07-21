@@ -61,3 +61,31 @@ bot.on('messages', message => {
     }
 });
 ```
+
+Set persistent menu:
+``` js
+const { PostbackButton } = require('facebook-messenjs');
+
+bot.on('messagingPostback', postback => {
+    if (postback.payload === "GET_STARTED") {
+        postback.sender.setPersistentMenu([
+            new PostbackButton("Button 1", "PAYLOAD_ONE"),
+            new PostbackButton("Button 2", "PAYLOAD_TWO")
+        ]);
+    }
+});
+```
+
+Send pictures:
+``` js
+const { BaseAttachment } = require('facebook-messenjs');
+
+const picture = new BaseAttachment(bot, "image", {
+    content: "./picture.png",
+    reusable: true
+});
+
+bot.on("messages", message => {
+    message.sender.send(picture);
+});
+```

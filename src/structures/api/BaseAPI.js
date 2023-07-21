@@ -12,7 +12,7 @@ const ReadEvent = require('../actions/ReadEvent');
 
 const Events = require('../../util/Events');
 
-const sendUnauthorized = require('../miscellaneous/sendUnauthorized');
+const sendUnauthorized = require('../../scripts/sendUnauthorized');
 
 class BaseAPI {
     /**

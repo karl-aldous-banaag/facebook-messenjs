@@ -1,33 +1,46 @@
 const fetch = require('make-fetch-happen');
+const fs = require('fs');
+const FormData = require('form-data');
+const axios = require('axios');
+const { fetchPostJSON, fetchPostForm } = require('../../../scripts/fetches');
 
 class BaseAttachment {
     /**
      * @param {Client} client Facebook Messenger chatbot client
-     * @param {String} type Type of attachment
-     * @param {String} url URL of attachment
+     * @param {string} type Type of attachment
+     * @param {object} options data to be stored by Facebook
+     * @param {string} [options.content] URL or file path of attachment
+     * @param {string} [options.id] id of attachment already saved
+     * @param {boolean} [options.reusable] if attachment is reusable
      * @param {Boolean} [reusable]
-     * @param {String} [id] ID of attachment
      * @property {Client} client Facebook Messenger chatbot client
      * @property {String} type Type of attachment
-     * @property {String} url URL of attachment
-     * @property {Boolean} reusable
      * @property {String} id ID of attachment
+     * @property {Boolean} reusable
+     * @property {String} [content] URL or file path of attachment
+     * @property {String} [url] URL of attachment if source was from internet
      */
-    constructor(client, type, url, reusable = true, id = null) {
+    constructor(client, type, options) {
         this.client = client;
         this.type = type;
-        this.url = url;
-        this.reusable = reusable;
-
-        if (id) {
-            this.id = id;
+        if (options.content) { this.content = options.content; }
+        if (options.id) { this.id = options.id; }
+        if (typeof options.reusable == "boolean") {
+            this.reusable = options.reusable;
         } else {
-            fetch(`https://graph.facebook.com/v13.0/me/message_attachments?access_token=${this.client.pageToken}`, {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            this.reusable = false;
+        }
+
+        if (options.id) {
+            this.id = options.id;
+        } else {
+            if (options.content.toLowerCase().startsWith("http")) {
+                this.url = url;
+
+                fetchPostJSON({
+                    host: "graph.facebook.com",
+                    path: `/v17.0/me/message_attachments?access_token=${this.client.pageToken}`
+                }, {
                     message: {
                         attachment: {
                             type: this.type,
@@ -38,11 +51,25 @@ class BaseAttachment {
                         }
                     }
                 })
-            })
-                .then(res => res.json())
-                .then(json => {
-                    this.id = json.attachment_id;
-                });
+                    .then(res => {
+                        const json = JSON.parse(res);
+                        this.id = json.attachment_id;
+                    })
+                    .catch(err => console.error(err));
+            } else {
+                fetchPostForm({
+                    hostname: "graph.facebook.com",
+                    path: `/v17.0/me/message_attachments?access_token=${this.client.pageToken}`
+                }, {
+                    "message": `{"attachment":{"type":"${this.type}","payload":{"is_reusable":${this.reusable}}}}`,
+                    "filedata": fs.createReadStream(options.content)
+                })
+                    .then(res => {
+                        const json = JSON.parse(res);
+                        this.id = json.attachment_id;
+                    })
+                    .catch(err => console.error(err));
+            }
         }
     }
 

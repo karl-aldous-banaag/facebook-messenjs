@@ -1,9 +1,11 @@
 const fetch = require('make-fetch-happen');
 const Client = require('../client/Client');
 const BaseQuickReply = require('./message/quickReplies/BaseQuickReply');
-const Buttons = require('./buttons/Buttons');
+const { PostbackButton, URLButton } = require('./buttons/Buttons');
 const BaseTemplate = require('./message/template/BaseTemplate');
 const Message = require('./message/Message');
+const { fetchGet, fetchPostJSON, fetchDelete, fetchPostForm } = require('../scripts/fetches');
+const BaseAttachment = require('./message/attachments/BaseAttachment');
 
 class Profile {
     /**
@@ -21,11 +23,23 @@ class Profile {
 
     /**
      * @property {Function} deletePersistentMenu
-     * @returns {null}
+     * @returns {Promise.<boolean>}
      */
     deletePersistentMenu() {
-        fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?psid=${this.id}&params=[%22persistent_menu%22]&access_token=${this.client.pageToken}`, {
-            method: 'delete'
+        return new Promise((resolve, reject) => {
+            fetchDelete({
+                host: "graph.facebook.com",
+                path: `/v17.0/me/custom_user_settings?psid=${this.id}&params=[%22persistent_menu%22]&access_token=${this.client.pageToken}`
+            })
+                .then(res => {
+                    const json = JSON.parse(res);
+                    const callResult = json.result === "success";
+                    if (callResult) {
+                        resolve(callResult);
+                    } else {
+                        reject(callResult);
+                    }
+                });
         });
     }
 
@@ -48,9 +62,14 @@ class Profile {
         if (!this.client.pageToken) { throw "token missing for client" }
 
         return new Promise((resolve, reject) => {
-            fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?psid=${this.id}&access_token=${this.client.pageToken}`)
-                .then(res => res.json())
-                .then(json => {
+            fetchGet({
+                host: "graph.facebook.com",
+                path: `/v17.0/me/custom_user_settings?psid=${this.id}&access_token=${this.client.pageToken}`,
+                method: "GET" 
+            })
+                .then(res => {
+                    const json = JSON.parse(res);
+
                     if (!("data" in json)) { reject(json) }
                     if (!("user_level_persistent_menu" in json.data[0])) { reject(json) }
                     if (!("call_to_actions" in json.data[0].user_level_persistent_menu[0])) { reject(json) }
@@ -59,12 +78,12 @@ class Profile {
                     let buttons = [];
                     for (let i = 0; i < callToActions.length; i++) {
                         if (callToActions[i].type === "postback") {
-                            buttons.push(new Buttons.PostbackButton(
+                            buttons.push(new PostbackButton(
                                 callToActions[i].title,
                                 callToActions[i].payload
                             ));
                         } else if (callToActions[i].type === "web_url") {
-                            buttons.push(new Buttons.URLButton(
+                            buttons.push(new URLButton(
                                 callToActions[i].title,
                                 callToActions[i].url,
                                 callToActions[i].webview_height_ratio
@@ -83,9 +102,9 @@ class Profile {
      * @returns {Promise}
      */
     getPersonalInfo(fields = ["first_name", "last_name", "profile_pic"]) {
-        if ((this.firstName) && (this.lastName) && (this.profilePic)) {
-            return new Promise((resolve, reject) => { resolve(this); });
-        }
+        // if ((this.firstName) && (this.lastName) && (this.profilePic)) {
+        //     return new Promise((resolve, reject) => { resolve(this); });
+        // }
 
         let fieldCopy = [...fields];
 
@@ -96,14 +115,19 @@ class Profile {
         if (fieldCopy.length > 0) {
             let fieldParam = fieldCopy.join(',');
 
-            return fetch(`https://graph.facebook.com/${this.id}?fields=${fieldParam}&access_token=${this.client.pageToken}`)
-                .then(res => res.json())
-                .then(json => {
-                    this.firstName = json.first_name;
-                    this.lastName = json.last_name;
-                    this.profilePic = json.profile_pic;
-                    return this
+            return new Promise((resolve, reject) => {
+                fetchGet({
+                    host: "graph.facebook.com",
+                    path: `/${this.id}?fields=${fieldParam}&access_token=${this.client.pageToken}`
                 })
+                    .then(res => {
+                        const json = JSON.parse(res);
+                        this.firstName = json.first_name;
+                        this.lastName = json.last_name;
+                        this.profilePic = json.profile_pic;
+                        resolve(this);
+                    })
+            });
         }
 
         return new Promise((resolve, reject) => { resolve(this); });
@@ -121,18 +145,27 @@ class Profile {
                 sender: { id: this.client.appID },
                 recipient:{ id: this.id },
                 timestamp: new Date().getTime(),
-                message: {
-                    text: options
-                }
+                // message: {
+                //     text: options
+                // }
             }
 
             if (typeof options === "string") {
-                replyMsgJSON.message.text = options;
+                replyMsgJSON.message = { text: options }
             } else if (options instanceof BaseTemplate) {
                 replyMsgJSON.message = {
                     attachment: {
                         type: "template",
                         payload: options.payload
+                    }
+                }
+            } else if (options instanceof BaseAttachment) {
+                replyMsgJSON.message = {
+                    attachment: {
+                        type: options.type,
+                        payload: {
+                            attachment_id: options.id
+                        }
                     }
                 }
             }
@@ -142,13 +175,12 @@ class Profile {
                 replyMsgJSON.message.quick_replies = qrs.map(qr => qr.getJSON());
             }
 
-            fetch(`https://graph.facebook.com/v17.0/me/messages?access_token=${this.client.pageToken}`, {
-                method: 'post',
-                body: JSON.stringify(replyMsgJSON),
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(res => res.json())
-                .then(json => {
+            fetchPostJSON({
+                host: "graph.facebook.com",
+                path: `/v17.0/me/messages?access_token=${this.client.pageToken}`
+            }, replyMsgJSON)
+                .then(res => {
+                    const json = JSON.parse(res);
                     replyMsgJSON.message.mid = json.message_id;
                     let cachedMessage = this.client.messageManager.fetch(replyMsgJSON);
                     if (json.error) {
@@ -162,7 +194,7 @@ class Profile {
 
     /**
      * @property {Function} setPersistentMenu
-     * @param {Array.<Buttons.BaseButton>} buttons
+     * @param {Array.<Buttons.<URLButton|PostbackButton>>} buttons
      * @returns {Promise}
      */
     setPersistentMenu(buttons) {
@@ -177,13 +209,14 @@ class Profile {
                     }
                 ]
             }
-    
-            fetch(`https://graph.facebook.com/v17.0/me/custom_user_settings?access_token=${this.client.pageToken}`, {
-                method: 'post',
-                body: JSON.stringify(postObject),
-                headers: { 'Content-Type': 'application/json' }
-            })
-                .then(res => resolve(buttons.map(button => button.json)));
+
+            fetchPostJSON({
+                host: "graph.facebook.com",
+                path: `/v17.0/me/custom_user_settings?access_token=${this.client.pageToken}`
+            }, postObject)
+                .then(res => {
+                    resolve(buttons.map(button => button.json))
+                });
         })
     }
 }

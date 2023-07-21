@@ -1,5 +1,8 @@
 module.exports = {
-    Buttons: require('./structures/buttons/Buttons'),
+    BaseAttachment: require('./structures/message/attachments/BaseAttachment'),
+    CallButton: require('./structures/buttons/Buttons').CallButton,
+    PostbackButton: require('./structures/buttons/Buttons').PostbackButton,
+    URLButton: require('./structures/buttons/Buttons').URLButton,
     Client: require('./client/Client'),
     Collection: require('./structures/Collection'),
     Events: require('./util/Events'),
