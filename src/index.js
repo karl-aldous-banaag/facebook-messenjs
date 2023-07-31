@@ -10,6 +10,6 @@ module.exports = {
     MessageManager: require('./client/MessageManager'),
     Profile: require('./structures/Profile'),
     ProfileManager: require('./client/ProfileManager'),
-    QuickReplies: require('./structures/message/quickReplies/QuickReplies'),
+    TextQuickReply: require('./structures/message/quickReplies/QuickReplies').Text,
     Templates: require('./structures/message/template/Templates')
 }

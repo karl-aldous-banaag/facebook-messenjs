@@ -10,9 +10,12 @@ const BaseAttachment = require('./message/attachments/BaseAttachment');
 class Profile {
     /**
      * @param {Client} client
-     * @param {String} id - ID of Profile
+     * @param {string} id - ID of Profile
      * @property {Client} client
-     * @property {String} id
+     * @property {string} id
+     * @property {string} [firstName]
+     * @property {string} [lastName]
+     * @property {*} [profilePic]
      */
     constructor(client, id) {
         this.client = client;

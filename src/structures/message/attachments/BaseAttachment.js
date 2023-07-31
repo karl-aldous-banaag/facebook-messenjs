@@ -35,7 +35,7 @@ class BaseAttachment {
             this.id = options.id;
         } else {
             if (options.content.toLowerCase().startsWith("http")) {
-                this.url = url;
+                this.url = options.content;
 
                 fetchPostJSON({
                     host: "graph.facebook.com",

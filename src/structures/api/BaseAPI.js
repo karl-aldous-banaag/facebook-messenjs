@@ -19,6 +19,7 @@ class BaseAPI {
      * @param {Client} client - Facebook Messenger chatbot client
      * @param {Client} route - Route for Facebook Messenger webhook
      * @param {Object} options - Options for BaseAPI
+     * @param {boolean} [options.validation] - option for turining off/on webhook validation
      * @property {Boolean} validation - If API should only receive calls from Facebook
      */
     constructor(client, route = "/", options = {
@@ -54,21 +55,22 @@ class BaseAPI {
         });
 
         this.app.post(route, (req, res) => {
-            if (!("x-hub-signature" in req.headers)) {
-                sendUnauthorized(res);
-                return;
-            }
-
             if (req.body) {
                 if (this.validation) {
-                    let hubSignature = req.headers["x-hub-signature"];
-                    let expectedSignature = `sha1=${
-                        crypto.createHmac('sha1', this.client.appSecret)
-                            .update(JSON.stringify(req.body))
-                            .digest("hex")
-                    }`;
+                    if (!("x-hub-signature-256" in req.headers)) {
+                        sendUnauthorized(res);
+                        return;
+                    };
+
+                    let signature = req.headers["x-hub-signature-256"];
+                    let signatureHash = signature.split("=")[1];
+
+                    let expectedHash = crypto
+                        .createHmac("sha256", this.client.appSecret)
+                        .update(JSON.stringify(req.body))
+                        .digest("hex");
     
-                    if (hubSignature !== expectedSignature) {
+                    if (signatureHash !== expectedHash) {
                         sendUnauthorized(res);
                         return;
                     }

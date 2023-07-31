@@ -1,7 +1,7 @@
 class BaseQuickReply {
     /**
-     * @param {String} contentType Type of quick reply (can be text, user_phone_number, or user_email)
-     * @property {String} contentType Type of quick reply (can be text, user_phone_number, or user_email)
+     * @param {string} contentType Type of quick reply (can be text, user_phone_number, or user_email)
+     * @property {string} contentType Type of quick reply (can be text, user_phone_number, or user_email)
      */
     constructor(contentType) {
         this.contentType = contentType;

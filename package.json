@@ -1,6 +1,6 @@
 {
   "name": "facebook-messenjs",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "API wrapper for Facebook Messenger inspired by discord.js",
   "main": "src/index.js",
   "types": "typings/index.d.ts",

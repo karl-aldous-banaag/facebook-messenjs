@@ -2,6 +2,21 @@ import { EventEmitter } from "node:events";
 
 import { Express } from "express";
 
+export class BaseQuickReply {
+    public constructor(contentType: string);
+
+    public contentType: string;
+    public getJSON(): object;
+}
+
+export class TextQuickReply extends BaseQuickReply {
+    public constructor(title: string, payload: string, imageURL?: string);
+
+    public title: string;
+    public payload: string;
+    public imageURL: string;
+}
+
 export interface BaseAttachmentTypes {
     IMAGE: "image";
     VIDEO: "video";

@@ -1,6 +1,6 @@
 const BaseQuickReply = require('./BaseQuickReply');
 
-class TextQuickReply extends BaseQuickReply{
+class TextQuickReply extends BaseQuickReply {
     /**
      * @param {String} title Text in quick reply
      * @param {String} payload Special code to know that they pressed the button 

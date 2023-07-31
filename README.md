@@ -37,7 +37,10 @@ bot.listen(5566, () => {
 });
 ```
 
-Use quick replies:
+Create text quick replies:
+```js
+const { Client, TextQuickReply } = require('facebook-messenjs');
+```
 ``` js
 bot.on('messages', message => {
     if (!message.payload) { // Checks if the message has a payload
@@ -64,8 +67,9 @@ bot.on('messages', message => {
 
 Set persistent menu:
 ``` js
-const { PostbackButton } = require('facebook-messenjs');
-
+const { Client, PostbackButton } = require('facebook-messenjs');
+```
+``` js
 bot.on('messagingPostback', postback => {
     if (postback.payload === "GET_STARTED") {
         postback.sender.setPersistentMenu([
@@ -78,8 +82,9 @@ bot.on('messagingPostback', postback => {
 
 Send pictures:
 ``` js
-const { BaseAttachment } = require('facebook-messenjs');
-
+const { Client, BaseAttachment } = require('facebook-messenjs');
+```
+``` js
 const picture = new BaseAttachment(bot, "image", {
     content: "./picture.png",
     reusable: true
